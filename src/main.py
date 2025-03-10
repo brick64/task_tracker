@@ -2,6 +2,28 @@ import argparse
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(
+        description="A simple task tracker CLI written in Python"
+    )
+    initialize_parser(parser)
+
+    args = parser.parse_args()
+    match args.command:
+        case "add":
+            add_task()
+        case "update":
+            update_task()
+        case "delete":
+            delete_task()
+        case "mark-in-progress":
+            mark_task_in_progress()
+        case "mark-done":
+            mark_task_done()
+        case "list":
+            list_tasks()
+
+
+def initialize_parser(parser: argparse.ArgumentParser) -> None:
     commands = {
         "add": {
             "help": "Add new task",
@@ -40,9 +62,7 @@ def main() -> None:
             },
         },
     }
-    parser = argparse.ArgumentParser(
-        description="A simple task tracker CLI written in Python"
-    )
+
     subparsers = parser.add_subparsers(dest="command")
 
     for command in commands:
@@ -58,22 +78,30 @@ def main() -> None:
             subparser.add_argument(
                 arg, type=type, choices=choises, default=default, help=help
             )
-    args = parser.parse_args()
-    match args.command:
-        case "add":
-            print("add")
-        case "update":
-            print("update")
-        case "delete":
-            print("delete")
-        case "mark-in-progress":
-            print("mark-in-progress")
-        case "mark-done":
-            print("mark-done")
-        case "list":
-            print("list")
-        case _:
-            print("unknown")
+
+
+def add_task():
+    pass
+
+
+def update_task():
+    pass
+
+
+def delete_task():
+    pass
+
+
+def mark_task_in_progress():
+    pass
+
+
+def mark_task_done():
+    pass
+
+
+def list_tasks():
+    pass
 
 
 if __name__ == "__main__":
