@@ -16,13 +16,13 @@ def main() -> None:
         case "update":
             update_task(id=args.id, description=args.description)
         case "delete":
-            delete_task()
+            delete_task(id=args.id)
         case "mark-in-progress":
-            mark_task_in_progress()
+            mark_task_in_progress(id=args.id)
         case "mark-done":
-            mark_task_done()
+            mark_task_done(id=args.id)
         case "list":
-            list_tasks()
+            list_tasks(status=args.status)
 
 
 def initialize_parser(parser: argparse.ArgumentParser) -> None:
@@ -58,7 +58,7 @@ def initialize_parser(parser: argparse.ArgumentParser) -> None:
             "help": "List existing tasks",
             "status": {
                 "type": str,
-                "choises": ["done", "todo", "in-progress"],
+                "choises": ["done", "todo", "in-progress", ""],
                 "default": "",
                 "help": "The status of the task",
             },
@@ -84,47 +84,70 @@ def initialize_parser(parser: argparse.ArgumentParser) -> None:
 
 def add_task(description: str):
     data = read_db()
-    ids = [task["id"] for task in data["tasks"]]
+    tasks = data["tasks"]
+    ids = list(map(int, tasks.keys()))
+    id = max(ids) + 1 if ids else 0
     task = {
         "description": description,
         "status": "todo",
         "createdAt": str(datetime.now(timezone.utc)),
         "updatedAt": str(datetime.now(timezone.utc)),
     }
-    print(data["tasks"])
-    data["tasks"].append({str(max(ids) + 1 if ids else 0): task})
-    print(data["tasks"])
+    data["tasks"][id] = task
     write_db(data=data)
 
 
 def update_task(id: int, description: str):
     data = read_db()
+    task = data["tasks"][id]
+    task["description"] = description
+    task["updatedAt"] = str(datetime.now(timezone.utc))
+    write_db(data=data)
 
 
-def delete_task():
-    pass
+def delete_task(id: int):
+    data = read_db()
+    tasks = data["tasks"]
+    tasks.pop(id)
+    write_db(data=data)
 
 
-def mark_task_in_progress():
-    pass
+def mark_task_in_progress(id: int):
+    data = read_db()
+    task = data["tasks"][id]
+    task["status"] = "in-progress"
+    write_db(data=data)
 
 
-def mark_task_done():
-    pass
+def mark_task_done(id: int):
+    data = read_db()
+    task = data["tasks"][id]
+    task["status"] = "done"
+    write_db(data=data)
 
 
-def list_tasks():
-    pass
+def list_tasks(status: str):
+    data = read_db()
+    if status == "":
+        tasks = list(data["tasks"].items())
+    else:
+        tasks = [i for i in list(data["tasks"].items()) if i[1]["status"] == status]
+    print(tasks)
+
+
+def init_db():
+    with open("db.json", "w") as outfile:
+        data = {"tasks": {}}
+        json.dump(data, outfile)
+        return data
 
 
 def read_db():
     try:
         with open("db.json", "r") as db:
             data = json.load(db)
-    except json.decoder.JSONDecodeError:
-        with open("db.json", "w") as outfile:
-            data = {"tasks": []}
-            json.dump(data, outfile)
+    except FileNotFoundError:
+        data = init_db()
 
     return data
 
