@@ -1,4 +1,6 @@
 import argparse
+import json
+from datetime import datetime, timezone
 
 
 def main() -> None:
@@ -10,9 +12,9 @@ def main() -> None:
     args = parser.parse_args()
     match args.command:
         case "add":
-            add_task()
+            add_task(description=args.description)
         case "update":
-            update_task()
+            update_task(id=args.id, description=args.description)
         case "delete":
             delete_task()
         case "mark-in-progress":
@@ -80,12 +82,23 @@ def initialize_parser(parser: argparse.ArgumentParser) -> None:
             )
 
 
-def add_task():
-    pass
+def add_task(description: str):
+    data = read_db()
+    ids = [task["id"] for task in data["tasks"]]
+    task = {
+        "description": description,
+        "status": "todo",
+        "createdAt": str(datetime.now(timezone.utc)),
+        "updatedAt": str(datetime.now(timezone.utc)),
+    }
+    print(data["tasks"])
+    data["tasks"].append({str(max(ids) + 1 if ids else 0): task})
+    print(data["tasks"])
+    write_db(data=data)
 
 
-def update_task():
-    pass
+def update_task(id: int, description: str):
+    data = read_db()
 
 
 def delete_task():
@@ -102,6 +115,23 @@ def mark_task_done():
 
 def list_tasks():
     pass
+
+
+def read_db():
+    try:
+        with open("db.json", "r") as db:
+            data = json.load(db)
+    except json.decoder.JSONDecodeError:
+        with open("db.json", "w") as outfile:
+            data = {"tasks": []}
+            json.dump(data, outfile)
+
+    return data
+
+
+def write_db(data):
+    with open("db.json", "w") as db:
+        json.dump(data, db)
 
 
 if __name__ == "__main__":
