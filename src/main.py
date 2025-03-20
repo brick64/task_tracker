@@ -99,7 +99,7 @@ def add_task(description: str):
 
 def update_task(id: int, description: str):
     data = read_db()
-    task = data["tasks"][id]
+    task = data["tasks"][str(id)]
     task["description"] = description
     task["updatedAt"] = str(datetime.now(timezone.utc))
     write_db(data=data)
@@ -108,20 +108,20 @@ def update_task(id: int, description: str):
 def delete_task(id: int):
     data = read_db()
     tasks = data["tasks"]
-    tasks.pop(id)
+    tasks.pop(str(id))
     write_db(data=data)
 
 
 def mark_task_in_progress(id: int):
     data = read_db()
-    task = data["tasks"][id]
+    task = data["tasks"][str(id)]
     task["status"] = "in-progress"
     write_db(data=data)
 
 
 def mark_task_done(id: int):
     data = read_db()
-    task = data["tasks"][id]
+    task = data["tasks"][str(id)]
     task["status"] = "done"
     write_db(data=data)
 
@@ -132,7 +132,18 @@ def list_tasks(status: str):
         tasks = list(data["tasks"].items())
     else:
         tasks = [i for i in list(data["tasks"].items()) if i[1]["status"] == status]
-    print(tasks)
+
+    for task in tasks:
+        print(
+            "-----------------------------------------\n"
+            f"Id:           {task[0]}\n"
+            f"Description:  {task[1]['description']}\n"
+            f"Status:       {task[1]['status']}\n"
+            f"Created At:   {task[1]['createdAt']}\n"
+            f"Updated At:   {task[1]['updatedAt']}\n",
+            end="",
+        )
+    print("-----------------------------------------\n", end="")
 
 
 def init_db():
